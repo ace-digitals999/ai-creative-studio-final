@@ -166,6 +166,7 @@ export default function AIChatbot() {
             }}
             className="min-h-[60px] bg-card/50 border-border/50 focus:border-primary resize-none"
             disabled={isLoading}
+            showClear={true}
           />
           <Button
             onClick={sendMessage}

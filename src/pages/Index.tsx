@@ -56,8 +56,7 @@ const Index = () => {
         <source src="/background-video.mp4" type="video/mp4" />
       </video>
       
-      {/* Subtle overlay for content readability */}
-      <div className="fixed inset-0 bg-background/10 pointer-events-none" />
+      {/* No overlay - pure video visibility */}
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}

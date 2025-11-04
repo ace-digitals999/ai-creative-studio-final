@@ -109,12 +109,13 @@ export default function ImageToPrompt() {
       return (
         <div className="running-border">
           <div className="bg-card p-2 rounded-md">
-            <Textarea
-              value={promptData}
-              readOnly
-              className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-              showCopy={true}
-            />
+               <Textarea
+                  value={promptData}
+                  readOnly
+                  className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
+                  showCopy={true}
+                  showClear={true}
+                />
           </div>
         </div>
       );
@@ -124,24 +125,26 @@ export default function ImageToPrompt() {
           <div className="running-border">
             <div className="bg-card p-2 rounded-md">
               <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("prompt.mainPrompt")}</label>
-              <Textarea
-                value={promptData.prompt}
-                readOnly
-                className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-                showCopy={true}
-              />
+               <Textarea
+                  value={promptData.prompt}
+                  readOnly
+                  className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
+                  showCopy={true}
+                  showClear={true}
+                />
             </div>
           </div>
           {promptData.negative_prompt && (
             <div className="running-border">
               <div className="bg-card p-2 rounded-md">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("generator.negativePrompt")}</label>
-                <Textarea
-                  value={promptData.negative_prompt}
-                  readOnly
-                  className="min-h-[75px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-                  showCopy={true}
-                />
+                  <Textarea
+                    value={promptData.negative_prompt}
+                    readOnly
+                    className="min-h-[75px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
+                    showCopy={true}
+                    showClear={true}
+                  />
               </div>
             </div>
           )}
@@ -186,6 +189,7 @@ export default function ImageToPrompt() {
                   onChange={(e) => setTextInput(e.target.value)}
                   className="min-h-[80px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
                   showCopy={true}
+                  showClear={true}
                 />
               </div>
             </div>
@@ -215,6 +219,7 @@ export default function ImageToPrompt() {
                     onChange={(e) => setMagicPrompt(e.target.value)}
                     className="min-h-[100px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
                     showCopy={true}
+                    showClear={true}
                   />
                 </div>
               </div>
@@ -262,6 +267,7 @@ export default function ImageToPrompt() {
                 onChange={(e) => setNegativePrompt(e.target.value)}
                 className="min-h-[60px] bg-card/50 border-border/50 focus:border-primary resize-none"
                 showCopy={true}
+                showClear={true}
               />
             </div>
           </div>

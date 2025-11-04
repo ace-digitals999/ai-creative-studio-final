@@ -193,6 +193,7 @@ export default function ImageGenerator() {
               className="min-h-[80px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
               maxLength={5000}
               showCopy={true}
+              showClear={true}
             />
             <p className="text-xs text-muted-foreground mt-1">
               {prompt.length}/5000
@@ -227,6 +228,7 @@ export default function ImageGenerator() {
                 onChange={(e) => setMagicPrompt(e.target.value)}
                 className="min-h-[120px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
                 showCopy={true}
+                showClear={true}
               />
             </div>
           </div>
@@ -309,6 +311,7 @@ export default function ImageGenerator() {
             onChange={(e) => setNegativePrompt(e.target.value)}
             className="min-h-[80px] bg-card/50 border-border/50 focus:border-primary resize-none"
             showCopy={true}
+            showClear={true}
           />
         </div>
 

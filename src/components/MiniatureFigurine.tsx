@@ -264,6 +264,7 @@ export default function MiniatureFigurine() {
               className="min-h-[100px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
               maxLength={2000}
               showCopy={true}
+              showClear={true}
             />
             <p className="text-xs text-muted-foreground mt-1">
               {figurinePrompt.length}/2000
