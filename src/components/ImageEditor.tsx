@@ -133,7 +133,7 @@ export default function ImageEditor() {
     setIsSaving(true);
     try {
       const finalPrompt = magicPrompt || prompt;
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("gallery_images")
         .insert({
           user_id: user.id,

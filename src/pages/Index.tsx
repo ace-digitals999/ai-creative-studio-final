@@ -62,23 +62,23 @@ const Index = () => {
         {/* Header */}
         <header className="text-center mb-8 space-y-3 animate-fade-in-up">
           <div className="flex justify-end gap-2 mb-3">
-            <Button onClick={toggleLanguage} variant="outline" size="sm" className="neon-glow animate-pulse-glow">
+            <Button onClick={toggleLanguage} variant="outline" size="sm" className="backdrop-blur-xl bg-card/20 neon-glow animate-pulse-glow">
               <Languages className="mr-1 h-3 w-3" />
               <span className="text-xs">{language === "en" ? "فارسی" : "English"}</span>
             </Button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/gallery")} variant="outline" size="sm" className="neon-glow">
+                <Button onClick={() => navigate("/gallery")} variant="outline" size="sm" className="backdrop-blur-xl bg-card/20 neon-glow">
                   <Images className="mr-1 h-3 w-3" />
                   <span className="text-xs">{t("header.gallery")}</span>
                 </Button>
-                <Button onClick={handleSignOut} variant="outline" size="sm" className="neon-glow">
+                <Button onClick={handleSignOut} variant="outline" size="sm" className="backdrop-blur-xl bg-card/20 neon-glow">
                   <LogOut className="mr-1 h-3 w-3" />
                   <span className="text-xs">{t("header.signOut")}</span>
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setShowAuth(!showAuth)} variant="outline" size="sm" className="neon-glow">
+              <Button onClick={() => setShowAuth(!showAuth)} variant="outline" size="sm" className="backdrop-blur-xl bg-card/20 neon-glow">
                 <span className="text-xs">{t("header.signIn")}</span>
               </Button>
             )}
@@ -99,7 +99,7 @@ const Index = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-2 md:grid-cols-5 mb-6 bg-card/30 border border-border/50 neon-glow p-1">
+          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-2 md:grid-cols-5 mb-6 bg-card/10 backdrop-blur-2xl border border-border/50 neon-glow p-1">
             <TabsTrigger 
               value="prompt" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"

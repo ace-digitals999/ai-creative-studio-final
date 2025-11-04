@@ -133,7 +133,7 @@ export default function MiniatureFigurine() {
           : uploadedFigurine;
         
         // If user uploaded a figurine, transform it into a full body 1/7 scale figure
-        fullPrompt = `Transform this into a ${scaleAndFormat}. Even if only the upper body is shown, create the complete full body figure with legs and feet. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus, professional product photography`;
+        fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus, professional product photography. The final result must show a complete full-body figurine.`;
         
         const { data, error } = await supabase.functions.invoke("edit-image", {
           body: {
@@ -146,7 +146,7 @@ export default function MiniatureFigurine() {
         setGeneratedImage(data.imageUrl);
       } else {
         // Generate from text description
-        fullPrompt = `A highly detailed ${scaleAndFormat}: ${figurinePrompt}. ${styleTemplate?.description}. Displayed on ${backgroundTemplate?.description}. Complete figure with full body from head to feet, standing on base. Ultra high resolution, 8k quality, professional product photography, perfect lighting, sharp focus, extreme detail, museum quality photograph, professional DSLR camera, macro lens, perfect depth of field`;
+        fullPrompt = `A highly detailed ${scaleAndFormat}: ${figurinePrompt}. ${styleTemplate?.description}. Displayed on ${backgroundTemplate?.description}. CRITICAL: The figurine MUST show complete full body from head to feet, including legs and feet, standing on display base. ENTIRE BODY must be visible - no cropping at waist or legs. Ultra high resolution, 8k quality, professional product photography, perfect lighting, sharp focus, extreme detail, museum quality photograph, professional DSLR camera, macro lens, perfect depth of field`;
         
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: {
@@ -191,7 +191,7 @@ export default function MiniatureFigurine() {
     setIsSaving(true);
     try {
       const backgroundTemplate = BACKGROUND_TEMPLATES.find(bg => bg.id === selectedBackground);
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("gallery_images")
         .insert({
           user_id: user.id,

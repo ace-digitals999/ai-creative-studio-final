@@ -157,7 +157,7 @@ export default function ImageGenerator() {
     setIsSaving(true);
     try {
       const finalPrompt = magicPrompt || prompt;
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("gallery_images")
         .insert({
           user_id: user.id,
@@ -237,22 +237,32 @@ export default function ImageGenerator() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-sm font-medium mb-2 block">{t("generator.style")}</Label>
-            <Select value={style} onValueChange={setStyle}>
-              <SelectTrigger className="bg-card/50 border-border/50 neon-glow">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t("style.none")}</SelectItem>
-                <SelectItem value="photorealistic">{t("style.photorealistic")}</SelectItem>
-                <SelectItem value="anime">{t("style.anime")}</SelectItem>
-                <SelectItem value="fantasy">{t("style.fantasy")}</SelectItem>
-                <SelectItem value="vintage">{t("style.vintage")}</SelectItem>
-                <SelectItem value="cinematic">{t("style.cinematic")}</SelectItem>
-                <SelectItem value="abstract">{t("style.abstract")}</SelectItem>
-                <SelectItem value="watercolor">{t("style.watercolor")}</SelectItem>
-                <SelectItem value="oil-painting">{t("style.oilPainting")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: "none", label: t("style.none"), emoji: "🎨" },
+                { value: "photorealistic", label: t("style.photorealistic"), emoji: "📷" },
+                { value: "anime", label: t("style.anime"), emoji: "🎌" },
+                { value: "fantasy", label: t("style.fantasy"), emoji: "🏰" },
+                { value: "vintage", label: t("style.vintage"), emoji: "📜" },
+                { value: "cinematic", label: t("style.cinematic"), emoji: "🎬" },
+                { value: "abstract", label: t("style.abstract"), emoji: "🎭" },
+                { value: "watercolor", label: t("style.watercolor"), emoji: "🖌️" },
+                { value: "oil-painting", label: t("style.oilPainting"), emoji: "🖼️" },
+              ].map((styleOption) => (
+                <button
+                  key={styleOption.value}
+                  onClick={() => setStyle(styleOption.value as any)}
+                  className={`p-2 rounded-lg border-2 transition-all backdrop-blur-xl ${
+                    style === styleOption.value
+                      ? "border-primary bg-primary/20 neon-glow-strong"
+                      : "border-border/50 bg-card/20 hover:border-primary/50 hover:bg-card/30"
+                  }`}
+                >
+                  <span className="text-2xl block mb-1">{styleOption.emoji}</span>
+                  <span className="text-xs font-medium">{styleOption.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

@@ -32,7 +32,7 @@ export default function Gallery() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      const { data: myImagesData } = await supabase
+      const { data: myImagesData } = await (supabase as any)
         .from("gallery_images")
         .select("*")
         .eq("user_id", user.id)
@@ -41,7 +41,7 @@ export default function Gallery() {
       setMyImages(myImagesData || []);
     }
 
-    const { data: publicImagesData } = await supabase
+    const { data: publicImagesData } = await (supabase as any)
       .from("gallery_images")
       .select("*")
       .eq("is_public", true)
@@ -52,7 +52,7 @@ export default function Gallery() {
   };
 
   const togglePublic = async (id: string, currentStatus: boolean) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("gallery_images")
       .update({ is_public: !currentStatus })
       .eq("id", id);
@@ -69,7 +69,7 @@ export default function Gallery() {
   };
 
   const deleteImage = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("gallery_images")
       .delete()
       .eq("id", id);
