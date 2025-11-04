@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Neon Gradient AI Design System - Award-winning fluid splash aesthetic */
+
+@layer base {
+  :root {
+    /* Deep space backgrounds */
+    --background: 240 15% 3%;
+    --foreground: 210 100% 98%;
+
+    /* Neon card system with transparency */
+    --card: 240 12% 8%;
+    --card-foreground: 210 100% 98%;
+    --card-glow: 240 12% 12%;
+
+    --popover: 240 12% 8%;
+    --popover-foreground: 210 100% 98%;
+
+    /* Neon cyan primary */
+    --primary: 190 100% 50%;
+    --primary-foreground: 240 15% 3%;
+    --primary-glow: 190 100% 60%;
+
+    /* Electric purple secondary */
+    --secondary: 280 100% 65%;
+    --secondary-foreground: 210 100% 98%;
+    --secondary-glow: 280 100% 75%;
+
+    /* Muted with subtle glow */
+    --muted: 240 10% 15%;
+    --muted-foreground: 210 20% 65%;
+
+    /* Vibrant accent */
+    --accent: 280 100% 65%;
+    --accent-foreground: 210 100% 98%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 210 100% 98%;
+
+    /* Neon borders */
+    --border: 240 20% 20%;
+    --input: 240 15% 12%;
+    --ring: 190 100% 50%;
+
+    --radius: 1rem;
+
+    /* Gradient definitions */
+    --gradient-primary: linear-gradient(135deg, hsl(190 100% 50%) 0%, hsl(280 100% 65%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(280 100% 65%) 0%, hsl(190 100% 50%) 100%);
+    --gradient-ambient: linear-gradient(180deg, hsl(240 15% 3%) 0%, hsl(240 20% 8%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 50%, hsl(190 100% 50% / 0.2) 0%, transparent 70%);
+
+    /* Shadows with neon glow */
+    --shadow-neon: 0 0 30px hsl(190 100% 50% / 0.3), 0 0 60px hsl(280 100% 65% / 0.2);
+    --shadow-deep: 0 20px 60px -15px hsl(240 15% 0% / 0.8);
+    --shadow-card: 0 10px 40px -10px hsl(240 15% 0% / 0.6), 0 0 20px hsl(190 100% 50% / 0.1);
+
+    /* Animation variables */
+    --animation-speed: 3s;
+    --pulse-speed: 2s;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* Animated gradient background */
+  .animated-gradient-bg {
+    background: linear-gradient(135deg, hsl(240 15% 3%) 0%, hsl(240 20% 8%) 50%, hsl(240 15% 5%) 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Neon glow effects */
+  .neon-glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--secondary) / 0.2);
+  }
+
+  .neon-glow-strong {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.5), 0 0 60px hsl(var(--secondary) / 0.3), inset 0 0 20px hsl(var(--primary) / 0.1);
+  }
+
+  /* Pulse animation */
+  @keyframes neonPulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--secondary) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.5), 0 0 60px hsl(var(--secondary) / 0.4);
+    }
+  }
+
+  .animate-neon-pulse {
+    animation: neonPulse 2s ease-in-out infinite;
+  }
+
+  /* Fluid splash gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(190 100% 50%), hsl(280 100% 65%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Shimmer effect */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+    background-size: 1000px 100%;
+    animation: shimmer 3s infinite;
+  }
+
+  /* Running border animation */
+  @keyframes borderRun {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+
+  .running-border {
+    position: relative;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--secondary)) 25%,
+      hsl(var(--accent)) 50%,
+      hsl(var(--secondary)) 75%,
+      hsl(var(--primary)) 100%
+    );
+    background-size: 200% 100%;
+    animation: borderRun 3s linear infinite;
+    padding: 2px;
+    border-radius: 0.5rem;
+  }
+
+  .running-border > * {
+    border-radius: 0.375rem;
+  }
+
+  /* Pulse glow animation */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.6); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* Bounce slow animation */
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-bounce-slow {
+    animation: bounce-slow 3s ease-in-out infinite;
+  }
+
+  /* Rotate slow animation */
+  @keyframes rotate-slow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .animate-rotate-slow {
+    animation: rotate-slow 20s linear infinite;
+  }
+
+  /* Slide in animation */
+  @keyframes slide-in {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.5s ease-out;
+  }
+
+  /* Fade in up animation */
+  @keyframes fade-in-up {
+    0% {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
