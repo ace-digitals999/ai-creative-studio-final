@@ -38,8 +38,9 @@ export default function ImageToPrompt() {
   const [mood, setMood] = useStateWithLocalStorage("promptGen.mood", "none");
   const [negativePrompt, setNegativePrompt] = useStateWithLocalStorage("promptGen.negativePrompt", "");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [prompts, setPrompts] = useStateWithLocalStorage<Record<string, any>>("promptGen.prompts", {});
-  const [activeTab, setActiveTab] = useState("general");
+  const [generalPrompt, setGeneralPrompt] = useStateWithLocalStorage<string>("promptGen.generalPrompt", "");
+  const [jsonPrompt, setJsonPrompt] = useStateWithLocalStorage<any>("promptGen.jsonPrompt", null);
+  const [activeResultTab, setActiveResultTab] = useState<"general" | "json">("general");
 
   const handleMagicPrompt = async () => {
     if (!textInput.trim()) {
@@ -64,15 +65,6 @@ export default function ImageToPrompt() {
       setIsEnhancing(false);
     }
   };
-
-  const models = [
-    { id: "general", name: "General" },
-    { id: "kling_ai", name: "Kling AI" },
-    { id: "ideogram", name: "Ideogram" },
-    { id: "leonardo_ai", name: "Leonardo AI" },
-    { id: "midjourney", name: "MidJourney" },
-    { id: "flux", name: "Flux" },
-  ];
 
   const extractVideoFrame = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -112,7 +104,6 @@ export default function ImageToPrompt() {
           
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
-          // Check if frame is not completely black
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const data = imageData.data;
           let totalBrightness = 0;
@@ -131,7 +122,6 @@ export default function ImageToPrompt() {
           resolve(dataUrl);
         } catch (error) {
           if (!attemptedExtraction) {
-            // Try a different timestamp
             attemptedExtraction = true;
             video.currentTime = Math.min(2, video.duration / 2);
           } else {
@@ -149,7 +139,6 @@ export default function ImageToPrompt() {
 
       video.onloadeddata = () => {
         setUploadProgress(60);
-        // Seek to 1 second or 25% of video duration for a good frame
         if (video.duration && video.duration > 0) {
           video.currentTime = Math.min(1, video.duration * 0.25);
         } else {
@@ -162,7 +151,7 @@ export default function ImageToPrompt() {
         extractFrame();
       };
       
-      video.onerror = (e) => {
+      video.onerror = () => {
         cleanup();
         reject(new Error('Failed to load video. Please use MP4 or WebM format.'));
       };
@@ -172,7 +161,6 @@ export default function ImageToPrompt() {
       video.src = objectUrl;
       video.load();
       
-      // Timeout fallback
       setTimeout(() => {
         if (!frameExtracted) {
           cleanup();
@@ -256,8 +244,28 @@ export default function ImageToPrompt() {
 
       if (error) throw error;
 
-      setPrompts(data.prompts);
-      setActiveTab("general");
+      // Set general prompt (use general from response or first available)
+      const general = data.prompts.general || Object.values(data.prompts)[0];
+      if (typeof general === "string") {
+        setGeneralPrompt(general);
+      } else if (general?.prompt) {
+        setGeneralPrompt(general.prompt);
+      }
+
+      // Set JSON format
+      setJsonPrompt({
+        prompt: typeof general === "string" ? general : general?.prompt || "",
+        negative_prompt: typeof general === "object" ? general?.negative_prompt : negativePrompt,
+        style: style !== "none" ? style : null,
+        mood: mood !== "none" ? mood : null,
+        parameters: {
+          quality: "high",
+          output_format: "png",
+          aspect_ratio: "auto"
+        }
+      });
+
+      setActiveResultTab("general");
       toast.success(t("toast.promptsGenerated"));
     } catch (error: any) {
       console.error("Error generating prompts:", error);
@@ -267,124 +275,84 @@ export default function ImageToPrompt() {
     }
   };
 
-  const renderPromptContent = (modelId: string, promptData: any) => {
-    if (typeof promptData === "string") {
-      return (
-        <div className="running-border">
-          <div className="bg-card p-2 rounded-md">
-               <Textarea
-                  value={promptData}
-                  readOnly
-                  className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-                  showCopy={true}
-                  showClear={true}
-                />
-          </div>
-        </div>
-      );
-    } else if (promptData?.prompt) {
-      return (
-        <div className="space-y-4">
-          <div className="running-border">
-            <div className="bg-card p-2 rounded-md">
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("prompt.mainPrompt")}</label>
-               <Textarea
-                  value={promptData.prompt}
-                  readOnly
-                  className="min-h-[150px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-                  showCopy={true}
-                  showClear={true}
-                />
-            </div>
-          </div>
-          {promptData.negative_prompt && (
-            <div className="running-border">
-              <div className="bg-card p-2 rounded-md">
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("generator.negativePrompt")}</label>
-                  <Textarea
-                    value={promptData.negative_prompt}
-                    readOnly
-                    className="min-h-[75px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
-                    showCopy={true}
-                    showClear={true}
-                  />
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="space-y-8">
       {/* Input Section */}
       <Card className="p-8 bg-card/30 backdrop-blur-xl border-border/50 neon-glow animate-slide-in">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image Upload */}
-          <div className="flex flex-col items-center justify-center">
-            <label
-              htmlFor="image-upload"
-              className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-primary/50 rounded-xl cursor-pointer hover:border-primary transition-all hover:neon-glow-strong relative overflow-hidden group"
-            >
-              {isProcessingVideo ? (
-                <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                  <RefreshCw className="h-12 w-12 text-primary animate-spin" />
-                  <div className="w-3/4">
-                    <div className="bg-card/50 rounded-full h-3 overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-primary to-secondary h-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Image Upload Column */}
+          <div className="space-y-4">
+            <div className="flex flex-col">
+              <label
+                htmlFor="image-upload"
+                className="w-full h-80 flex flex-col items-center justify-center border-2 border-dashed border-primary/50 rounded-xl cursor-pointer hover:border-primary transition-all hover:neon-glow-strong relative overflow-hidden group"
+              >
+                {isProcessingVideo ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                    <RefreshCw className="h-12 w-12 text-primary animate-spin" />
+                    <div className="w-3/4">
+                      <div className="bg-card/50 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-primary to-secondary h-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground mt-2">
+                        Processing video... {uploadProgress}%
+                      </p>
                     </div>
-                    <p className="text-xs text-center text-muted-foreground mt-2">
-                      Processing video... {uploadProgress}%
-                    </p>
                   </div>
-                </div>
-              ) : imagePreview ? (
-                <div className="w-full h-full relative">
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
-                  {isVideo && (
-                    <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground px-2 py-1 rounded text-xs font-medium">
-                      Video Frame
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center space-y-4">
-                  <Upload className="mx-auto h-12 w-12 text-primary animate-bounce-slow" />
-                  <p className="text-sm font-medium gradient-text">{t("prompt.uploadMedia")}</p>
-                  <p className="text-xs text-muted-foreground">{t("prompt.orDescribe")}</p>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </label>
-            <input 
-              id="image-upload" 
-              type="file" 
-              className="sr-only" 
-              accept="image/*,video/*" 
-              onChange={handleImageUpload}
-              disabled={isProcessingVideo}
-            />
+                ) : imagePreview ? (
+                  <div className="w-full h-full relative">
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                    {isVideo && (
+                      <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground px-2 py-1 rounded text-xs font-medium">
+                        Video Frame
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center space-y-4">
+                    <Upload className="mx-auto h-12 w-12 text-primary animate-bounce-slow" />
+                    <p className="text-sm font-medium gradient-text">{t("prompt.uploadMedia")}</p>
+                    <p className="text-xs text-muted-foreground">{t("prompt.orDescribe")}</p>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </label>
+              <input 
+                id="image-upload" 
+                type="file" 
+                className="sr-only" 
+                accept="image/*,video/*" 
+                onChange={handleImageUpload}
+                disabled={isProcessingVideo}
+              />
+            </div>
           </div>
 
-          {/* Text Input */}
+          {/* Text Input Column */}
           <div className="flex flex-col space-y-4">
-            <div className="running-border">
-              <div className="bg-card p-2 rounded-md">
+            {/* Simple Prompt Input */}
+            <div className="running-border flex-1">
+              <div className="bg-card p-4 rounded-md h-full flex flex-col">
+                <label className="text-sm font-medium mb-2 block">{t("prompt.description")}</label>
                 <Textarea
-                  placeholder={t("prompt.description")}
+                  placeholder="Describe what you want to create..."
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  className="min-h-[80px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
+                  className="flex-1 min-h-[100px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
+                  maxLength={5000}
                   showCopy={true}
                   showClear={true}
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {textInput.length}/5000
+                </p>
               </div>
             </div>
+
+            {/* Magic Enhance Button */}
             <Button
               onClick={handleMagicPrompt}
               disabled={isEnhancing || !textInput.trim()}
@@ -403,19 +371,24 @@ export default function ImageToPrompt() {
                 </>
               )}
             </Button>
+
+            {/* Enhanced Prompt Display */}
             {magicPrompt && (
               <div className="running-border">
-                <div className="bg-card p-2 rounded-md">
+                <div className="bg-card p-4 rounded-md">
+                  <label className="text-sm font-medium mb-2 block">{t("generator.enhancedPrompt")}</label>
                   <Textarea
                     value={magicPrompt}
                     onChange={(e) => setMagicPrompt(e.target.value)}
-                    className="min-h-[100px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
+                    className="min-h-[120px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
                     showCopy={true}
                     showClear={true}
                   />
                 </div>
               </div>
             )}
+
+            {/* Style and Mood Selectors */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("generator.style")}</label>
@@ -451,13 +424,15 @@ export default function ImageToPrompt() {
                 </Select>
               </div>
             </div>
+
+            {/* Negative Prompt */}
             <div>
               <label className="text-sm font-medium text-muted-foreground mb-2 block">{t("generator.negativePrompt")}</label>
               <Textarea
                 placeholder={t("generator.negativePromptPlaceholder")}
                 value={negativePrompt}
                 onChange={(e) => setNegativePrompt(e.target.value)}
-                className="min-h-[60px] bg-card/50 border-border/50 focus:border-primary resize-none"
+                className="min-h-[80px] bg-card/50 border-border/50 focus:border-primary resize-none"
                 showCopy={true}
                 showClear={true}
               />
@@ -465,6 +440,7 @@ export default function ImageToPrompt() {
           </div>
         </div>
 
+        {/* Generate Button */}
         <Button
           onClick={handleGenerate}
           disabled={isGenerating || ((!textInput && !magicPrompt) && !imageFile)}
@@ -485,22 +461,60 @@ export default function ImageToPrompt() {
       </Card>
 
       {/* Results Section */}
-      {Object.keys(prompts).length > 0 && (
+      {(generalPrompt || jsonPrompt) && (
         <Card className="p-8 bg-card/30 backdrop-blur-xl border-border/50 neon-glow animate-fade-in-up">
           <h2 className="text-2xl font-bold mb-6 gradient-text">{t("prompt.generatedPrompts")}</h2>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-card/50 neon-glow">
-              {models.map((model) => (
-                <TabsTrigger key={model.id} value={model.id} className="data-[state=active]:neon-glow-strong transition-all">
-                  {model.name}
-                </TabsTrigger>
-              ))}
+          
+          <Tabs value={activeResultTab} onValueChange={(v) => setActiveResultTab(v as "general" | "json")}>
+            <TabsList className="grid w-full grid-cols-2 bg-card/50 neon-glow mb-6">
+              <TabsTrigger value="general" className="data-[state=active]:neon-glow-strong transition-all">
+                General Prompt
+              </TabsTrigger>
+              <TabsTrigger value="json" className="data-[state=active]:neon-glow-strong transition-all">
+                Advanced JSON
+              </TabsTrigger>
             </TabsList>
-            {models.map((model) => (
-              <TabsContent key={model.id} value={model.id} className="mt-6">
-                {renderPromptContent(model.id, prompts[model.id])}
-              </TabsContent>
-            ))}
+
+            {/* General Tab */}
+            <TabsContent value="general" className="mt-0">
+              <div className="running-border">
+                <div className="bg-card p-4 rounded-md">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Enhanced Prompt</label>
+                  <Textarea
+                    value={generalPrompt}
+                    onChange={(e) => setGeneralPrompt(e.target.value)}
+                    className="min-h-[200px] bg-card/50 border-border/50 text-foreground resize-none transition-all font-mono"
+                    showCopy={true}
+                    showClear={true}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Advanced JSON Tab */}
+            <TabsContent value="json" className="mt-0">
+              <div className="running-border">
+                <div className="bg-card p-4 rounded-md">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">JSON Configuration</label>
+                  <Textarea
+                    value={JSON.stringify(jsonPrompt, null, 2)}
+                    onChange={(e) => {
+                      try {
+                        setJsonPrompt(JSON.parse(e.target.value));
+                      } catch (err) {
+                        // Invalid JSON, don't update
+                      }
+                    }}
+                    className="min-h-[300px] bg-card/50 border-border/50 text-foreground resize-none transition-all font-mono text-sm"
+                    showCopy={true}
+                    showClear={true}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This JSON can be used with AI image generation APIs
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </Card>
       )}
