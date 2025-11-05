@@ -101,12 +101,16 @@ serve(async (req) => {
       }
 
       const data = await response.json();
+      console.log("AI Gateway Response (single image):", JSON.stringify(data, null, 2));
+      
       const remixedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
       if (!remixedImageUrl) {
-        console.error("No image in response");
+        console.error("No image in response. Full response:", JSON.stringify(data));
         return new Response(
-          JSON.stringify({ error: "Unable to remix image" }),
+          JSON.stringify({ 
+            error: "Unable to remix image. The AI service may be temporarily unavailable or out of credits." 
+          }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -156,12 +160,16 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log("AI Gateway Response (multiple images):", JSON.stringify(data, null, 2));
+    
     const remixedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!remixedImageUrl) {
-      console.error("No image in response");
+      console.error("No image in response. Full response:", JSON.stringify(data));
       return new Response(
-        JSON.stringify({ error: "Unable to remix images" }),
+        JSON.stringify({ 
+          error: "Unable to remix images. The AI service may be temporarily unavailable or out of credits." 
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

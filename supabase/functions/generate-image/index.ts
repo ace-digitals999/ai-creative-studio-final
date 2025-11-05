@@ -114,12 +114,16 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log("AI Gateway Response:", JSON.stringify(data, null, 2));
+    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!imageUrl) {
-      console.error("No image data in response");
+      console.error("No image data in response. Full response:", JSON.stringify(data));
       return new Response(
-        JSON.stringify({ error: "Unable to generate image" }),
+        JSON.stringify({ 
+          error: "Unable to generate image. The AI service may be temporarily unavailable or out of credits." 
+        }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
