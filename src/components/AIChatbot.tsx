@@ -7,6 +7,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, Bot, User, Sparkles, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const chatMessageSchema = z.object({
+  content: z.string()
+    .min(1, "Message cannot be empty")
+    .max(5000, "Message must be less than 5000 characters"),
+});
 
 type Message = {
   role: "user" | "assistant";
@@ -20,7 +27,13 @@ export default function AIChatbot() {
   const [model, setModel] = useState("google/gemini-2.5-flash");
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    const validation = chatMessageSchema.safeParse({ content: input });
+
+    if (!validation.success) {
+      const errors = validation.error.errors.map((e) => e.message).join(", ");
+      toast.error(errors);
+      return;
+    }
 
     const userMessage: Message = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);

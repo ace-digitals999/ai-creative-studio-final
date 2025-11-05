@@ -92,10 +92,21 @@ export default function MiniatureFigurine() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be less than 10MB");
+      // Validate file
+      const fileValidation = z.instanceof(File)
+        .refine((f) => f.size <= 10 * 1024 * 1024, "Image must be less than 10MB")
+        .refine(
+          (f) => ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(f.type),
+          "Only PNG, JPEG, and WEBP images are supported"
+        )
+        .safeParse(file);
+
+      if (!fileValidation.success) {
+        const errors = fileValidation.error.errors.map((e) => e.message).join(", ");
+        toast.error(errors);
         return;
       }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setUploadedFigurine(e.target?.result as string);

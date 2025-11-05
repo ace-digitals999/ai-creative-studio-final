@@ -7,8 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, Sparkles, RefreshCw, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useStateWithLocalStorage } from "@/hooks/useStateWithLocalStorage";
+
+const imageToPromptSchema = z.object({
+  textInput: z.string().max(5000, "Text input must be less than 5000 characters").optional(),
+  imageFile: z.instanceof(File)
+    .refine((file) => file.size <= 10 * 1024 * 1024, "Image must be less than 10MB")
+    .refine(
+      (file) => ["image/png", "image/jpeg", "image/jpg", "image/webp", "video/mp4", "video/webm"].includes(file.type),
+      "Only PNG, JPEG, WEBP images and MP4, WebM videos are supported"
+    )
+    .optional(),
+}).refine((data) => data.textInput || data.imageFile, {
+  message: "Either text input or image file must be provided",
+});
 
 export default function ImageToPrompt() {
   const { t, language } = useLanguage();
@@ -211,8 +225,15 @@ export default function ImageToPrompt() {
 
   const handleGenerate = async () => {
     const finalTextInput = magicPrompt || textInput;
-    if (!finalTextInput && !imageFile) {
-      toast.error(t("toast.provideInput"));
+    
+    const validation = imageToPromptSchema.safeParse({
+      textInput: finalTextInput || undefined,
+      imageFile: imageFile || undefined,
+    });
+
+    if (!validation.success) {
+      const errors = validation.error.errors.map((e) => e.message).join(", ");
+      toast.error(errors);
       return;
     }
 
