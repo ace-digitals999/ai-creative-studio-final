@@ -15,6 +15,8 @@ export default function ImageToPrompt() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [textInput, setTextInput] = useStateWithLocalStorage("promptGen.textInput", "");
   const [magicPrompt, setMagicPrompt] = useStateWithLocalStorage("promptGen.magicPrompt", "");
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -74,57 +76,95 @@ export default function ImageToPrompt() {
       video.playsInline = true;
       video.crossOrigin = 'anonymous';
       
-      let seeked = false;
+      let attemptedExtraction = false;
+      let frameExtracted = false;
       
       const cleanup = () => {
         if (video.src && video.src.startsWith('blob:')) {
           URL.revokeObjectURL(video.src);
         }
       };
+
+      const extractFrame = () => {
+        if (frameExtracted) return;
+        
+        try {
+          if (video.videoWidth === 0 || video.videoHeight === 0) {
+            throw new Error('Invalid video dimensions');
+          }
+
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Check if frame is not completely black
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          let totalBrightness = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            totalBrightness += data[i] + data[i + 1] + data[i + 2];
+          }
+          const avgBrightness = totalBrightness / (data.length / 4) / 3;
+          
+          if (avgBrightness < 5) {
+            throw new Error('Extracted frame is too dark');
+          }
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+          frameExtracted = true;
+          cleanup();
+          resolve(dataUrl);
+        } catch (error) {
+          if (!attemptedExtraction) {
+            // Try a different timestamp
+            attemptedExtraction = true;
+            video.currentTime = Math.min(2, video.duration / 2);
+          } else {
+            cleanup();
+            reject(error);
+          }
+        }
+      };
       
-      video.onloadeddata = () => {
+      video.onloadedmetadata = () => {
+        setUploadProgress(30);
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
-        
-        // Try to seek to a good frame
+      };
+
+      video.onloadeddata = () => {
+        setUploadProgress(60);
+        // Seek to 1 second or 25% of video duration for a good frame
         if (video.duration && video.duration > 0) {
-          video.currentTime = Math.min(1, video.duration / 4);
+          video.currentTime = Math.min(1, video.duration * 0.25);
         } else {
-          video.currentTime = 0.1;
+          video.currentTime = 0.5;
         }
       };
       
       video.onseeked = () => {
-        if (seeked) return;
-        seeked = true;
-        
-        try {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-          cleanup();
-          resolve(dataUrl);
-        } catch (error) {
-          cleanup();
-          reject(new Error('Failed to extract frame'));
-        }
+        setUploadProgress(90);
+        extractFrame();
       };
       
-      video.onerror = () => {
+      video.onerror = (e) => {
         cleanup();
-        reject(new Error('Failed to load video. Try a different format (MP4, WebM)'));
+        reject(new Error('Failed to load video. Please use MP4 or WebM format.'));
       };
       
+      setUploadProgress(10);
       const objectUrl = URL.createObjectURL(file);
       video.src = objectUrl;
       video.load();
       
       // Timeout fallback
       setTimeout(() => {
-        if (!seeked) {
+        if (!frameExtracted) {
           cleanup();
-          reject(new Error('Video loading timeout'));
+          reject(new Error('Video processing timeout. File may be corrupted or too large.'));
         }
-      }, 10000);
+      }, 15000);
     });
   };
 
@@ -132,21 +172,38 @@ export default function ImageToPrompt() {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
+      setImagePreview(null);
+      setUploadProgress(0);
       const fileType = file.type;
       
       if (fileType.startsWith('video/')) {
         setIsVideo(true);
+        setIsProcessingVideo(true);
+        toast.info('Processing video...', { duration: 2000 });
+        
         try {
           const frameDataUrl = await extractVideoFrame(file);
           setImagePreview(frameDataUrl);
-        } catch (error) {
+          setUploadProgress(100);
+          toast.success('Video frame extracted successfully!');
+        } catch (error: any) {
           console.error('Error extracting video frame:', error);
-          toast.error('Failed to extract video frame');
+          toast.error(error.message || 'Failed to extract video frame');
+          setImageFile(null);
+          setIsVideo(false);
+        } finally {
+          setIsProcessingVideo(false);
+          setUploadProgress(0);
         }
       } else {
         setIsVideo(false);
+        setUploadProgress(50);
         const reader = new FileReader();
-        reader.onload = (e) => setImagePreview(e.target?.result as string);
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string);
+          setUploadProgress(100);
+          setTimeout(() => setUploadProgress(0), 500);
+        };
         reader.readAsDataURL(file);
       }
     }
@@ -250,7 +307,22 @@ export default function ImageToPrompt() {
               htmlFor="image-upload"
               className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-primary/50 rounded-xl cursor-pointer hover:border-primary transition-all hover:neon-glow-strong relative overflow-hidden group"
             >
-              {imagePreview ? (
+              {isProcessingVideo ? (
+                <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                  <RefreshCw className="h-12 w-12 text-primary animate-spin" />
+                  <div className="w-3/4">
+                    <div className="bg-card/50 rounded-full h-3 overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-primary to-secondary h-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      Processing video... {uploadProgress}%
+                    </p>
+                  </div>
+                </div>
+              ) : imagePreview ? (
                 <div className="w-full h-full relative">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
                   {isVideo && (
@@ -268,7 +340,14 @@ export default function ImageToPrompt() {
               )}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             </label>
-            <input id="image-upload" type="file" className="sr-only" accept="image/*,video/*" onChange={handleImageUpload} />
+            <input 
+              id="image-upload" 
+              type="file" 
+              className="sr-only" 
+              accept="image/*,video/*" 
+              onChange={handleImageUpload}
+              disabled={isProcessingVideo}
+            />
           </div>
 
           {/* Text Input */}
