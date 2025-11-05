@@ -64,35 +64,67 @@ export default function ImageToPrompt() {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
-      video.preload = 'metadata';
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+
+      video.preload = 'auto';
       video.muted = true;
       video.playsInline = true;
+      video.crossOrigin = 'anonymous';
       
-      video.onloadedmetadata = () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        video.currentTime = Math.min(1, video.duration / 2); // Extract frame at 1 second or mid-point
-      };
+      let seeked = false;
       
-      video.onseeked = () => {
-        if (ctx) {
-          ctx.drawImage(video, 0, 0);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      const cleanup = () => {
+        if (video.src && video.src.startsWith('blob:')) {
           URL.revokeObjectURL(video.src);
-          resolve(dataUrl);
-        } else {
-          reject(new Error('Failed to get canvas context'));
         }
       };
       
-      video.onerror = (e) => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('Failed to load video'));
+      video.onloadeddata = () => {
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        
+        // Try to seek to a good frame
+        if (video.duration && video.duration > 0) {
+          video.currentTime = Math.min(1, video.duration / 4);
+        } else {
+          video.currentTime = 0.1;
+        }
+      };
+      
+      video.onseeked = () => {
+        if (seeked) return;
+        seeked = true;
+        
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+          cleanup();
+          resolve(dataUrl);
+        } catch (error) {
+          cleanup();
+          reject(new Error('Failed to extract frame'));
+        }
+      };
+      
+      video.onerror = () => {
+        cleanup();
+        reject(new Error('Failed to load video. Try a different format (MP4, WebM)'));
       };
       
       const objectUrl = URL.createObjectURL(file);
       video.src = objectUrl;
       video.load();
+      
+      // Timeout fallback
+      setTimeout(() => {
+        if (!seeked) {
+          cleanup();
+          reject(new Error('Video loading timeout'));
+        }
+      }, 10000);
     });
   };
 
