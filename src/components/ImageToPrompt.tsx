@@ -14,6 +14,7 @@ export default function ImageToPrompt() {
   const { t, language } = useLanguage();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isVideo, setIsVideo] = useState(false);
   const [textInput, setTextInput] = useStateWithLocalStorage("promptGen.textInput", "");
   const [magicPrompt, setMagicPrompt] = useStateWithLocalStorage("promptGen.magicPrompt", "");
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -57,13 +58,53 @@ export default function ImageToPrompt() {
     { id: "flux", name: "Flux" },
   ];
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const extractVideoFrame = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        video.currentTime = 1; // Extract frame at 1 second
+      };
+      
+      video.onseeked = () => {
+        if (ctx) {
+          ctx.drawImage(video, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg'));
+        } else {
+          reject(new Error('Failed to get canvas context'));
+        }
+      };
+      
+      video.onerror = () => reject(new Error('Failed to load video'));
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+      const fileType = file.type;
+      
+      if (fileType.startsWith('video/')) {
+        setIsVideo(true);
+        try {
+          const frameDataUrl = await extractVideoFrame(file);
+          setImagePreview(frameDataUrl);
+        } catch (error) {
+          console.error('Error extracting video frame:', error);
+          toast.error('Failed to extract video frame');
+        }
+      } else {
+        setIsVideo(false);
+        const reader = new FileReader();
+        reader.onload = (e) => setImagePreview(e.target?.result as string);
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -166,17 +207,24 @@ export default function ImageToPrompt() {
               className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-primary/50 rounded-xl cursor-pointer hover:border-primary transition-all hover:neon-glow-strong relative overflow-hidden group"
             >
               {imagePreview ? (
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                <div className="w-full h-full relative">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-contain rounded-xl" />
+                  {isVideo && (
+                    <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground px-2 py-1 rounded text-xs font-medium">
+                      Video Frame
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-center space-y-4">
                   <Upload className="mx-auto h-12 w-12 text-primary animate-bounce-slow" />
-                  <p className="text-sm font-medium gradient-text">{t("prompt.uploadImage")}</p>
+                  <p className="text-sm font-medium gradient-text">{t("prompt.uploadMedia")}</p>
                   <p className="text-xs text-muted-foreground">{t("prompt.orDescribe")}</p>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             </label>
-            <input id="image-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
+            <input id="image-upload" type="file" className="sr-only" accept="image/*,video/*" onChange={handleImageUpload} />
           </div>
 
           {/* Text Input */}

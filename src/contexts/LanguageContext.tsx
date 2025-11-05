@@ -21,6 +21,7 @@ const translations: Record<Language, Record<string, string>> = {
     "header.gallery": "Gallery",
     
     // Tabs
+    "tabs.imageVideoToPrompt": "Image/Video to Prompt",
     "tab.imageToPrompt": "Image to Prompt",
     "tab.imageGenerator": "Image Generator",
     "tab.imageEditor": "Image Editor",
@@ -88,7 +89,7 @@ const translations: Record<Language, Record<string, string>> = {
     "editor.imagePreview": "Your edited image will appear here",
     
     // Image to Prompt
-    "prompt.uploadImage": "Upload an image",
+    "prompt.uploadMedia": "Upload an image or video",
     "prompt.orDescribe": "Or describe your idea below",
     "prompt.description": "Simple description... e.g., cyberpunk city at night",
     "prompt.magicEnhance": "Magic Enhance Description",
@@ -165,6 +166,7 @@ const translations: Record<Language, Record<string, string>> = {
     "header.gallery": "گالری",
     
     // Tabs
+    "tabs.imageVideoToPrompt": "تصویر/ویدیو به پرامپت",
     "tab.imageToPrompt": "تصویر به پرامپت",
     "tab.imageGenerator": "تولید تصویر",
     "tab.imageEditor": "ویرایش تصویر",
@@ -232,7 +234,7 @@ const translations: Record<Language, Record<string, string>> = {
     "editor.imagePreview": "تصویر ویرایش شده شما اینجا نمایش داده می‌شود",
     
     // Image to Prompt
-    "prompt.uploadImage": "آپلود تصویر",
+    "prompt.uploadMedia": "آپلود تصویر یا ویدیو",
     "prompt.orDescribe": "یا ایده خود را در زیر توضیح دهید",
     "prompt.description": "توضیح ساده... مثلاً، شهر سایبرپانک در شب",
     "prompt.magicEnhance": "بهبود جادویی توضیحات",

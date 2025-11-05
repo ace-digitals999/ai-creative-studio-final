@@ -105,7 +105,7 @@ const Index = () => {
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
             >
               <Wand2 className="mr-1 h-3 w-3" />
-              <span className="hidden md:inline">{t("tab.imageToPrompt")}</span>
+              <span className="hidden md:inline">{t("tabs.imageVideoToPrompt")}</span>
               <span className="md:hidden">Prompt</span>
             </TabsTrigger>
             <TabsTrigger 
