@@ -64,23 +64,35 @@ export default function ImageToPrompt() {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      
       video.onloadedmetadata = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        video.currentTime = 1; // Extract frame at 1 second
+        video.currentTime = Math.min(1, video.duration / 2); // Extract frame at 1 second or mid-point
       };
       
       video.onseeked = () => {
         if (ctx) {
           ctx.drawImage(video, 0, 0);
-          resolve(canvas.toDataURL('image/jpeg'));
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+          URL.revokeObjectURL(video.src);
+          resolve(dataUrl);
         } else {
           reject(new Error('Failed to get canvas context'));
         }
       };
       
-      video.onerror = () => reject(new Error('Failed to load video'));
-      video.src = URL.createObjectURL(file);
+      video.onerror = (e) => {
+        URL.revokeObjectURL(video.src);
+        reject(new Error('Failed to load video'));
+      };
+      
+      const objectUrl = URL.createObjectURL(file);
+      video.src = objectUrl;
+      video.load();
     });
   };
 

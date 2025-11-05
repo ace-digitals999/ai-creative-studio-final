@@ -318,7 +318,7 @@ export default function MiniatureFigurine() {
         {/* Generate Button */}
         <Button
           onClick={handleGenerate}
-          disabled={isGenerating || (!figurinePrompt.trim() && !uploadedFigurine)}
+          disabled={isGenerating || !figurinePrompt.trim()}
           className="w-full bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 text-primary-foreground font-semibold py-6 neon-glow-strong animate-pulse-glow"
         >
           {isGenerating ? (
