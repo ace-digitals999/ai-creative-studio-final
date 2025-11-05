@@ -51,7 +51,11 @@ export default function ImageToPrompt() {
     setIsEnhancing(true);
     try {
       const { data, error } = await supabase.functions.invoke("enhance-prompt", {
-        body: { prompt: textInput, type: "prompt-to-prompt" },
+        body: { 
+          prompt: textInput, 
+          type: "prompt-to-prompt",
+          language: language // Pass current language for auto-translation
+        },
       });
 
       if (error) throw error;
@@ -252,17 +256,20 @@ export default function ImageToPrompt() {
         setGeneralPrompt(general.prompt);
       }
 
-      // Set JSON format
+      // Set complete JSON prompt structure for AI APIs
       setJsonPrompt({
+        model: "flux-pro",
         prompt: typeof general === "string" ? general : general?.prompt || "",
-        negative_prompt: typeof general === "object" ? general?.negative_prompt : negativePrompt,
-        style: style !== "none" ? style : null,
-        mood: mood !== "none" ? mood : null,
-        parameters: {
-          quality: "high",
-          output_format: "png",
-          aspect_ratio: "auto"
-        }
+        negative_prompt: negativePrompt || "blurry, low quality, distorted, ugly, bad anatomy, watermark",
+        width: 1024,
+        height: 1024,
+        num_inference_steps: 50,
+        guidance_scale: 7.5,
+        num_outputs: 1,
+        scheduler: "K_EULER",
+        seed: null,
+        style: style !== "none" ? style : undefined,
+        mood: mood !== "none" ? mood : undefined
       });
 
       setActiveResultTab("general");
@@ -468,34 +475,41 @@ export default function ImageToPrompt() {
           <Tabs value={activeResultTab} onValueChange={(v) => setActiveResultTab(v as "general" | "json")}>
             <TabsList className="grid w-full grid-cols-2 bg-card/50 neon-glow mb-6">
               <TabsTrigger value="general" className="data-[state=active]:neon-glow-strong transition-all">
-                General Prompt
+                {t("prompt.humanPrompt") || "Human Prompt"}
               </TabsTrigger>
               <TabsTrigger value="json" className="data-[state=active]:neon-glow-strong transition-all">
-                Advanced JSON
+                {t("prompt.aiPrompt") || "AI API Prompt"}
               </TabsTrigger>
             </TabsList>
 
-            {/* General Tab */}
+            {/* Human-Readable Prompt Tab */}
             <TabsContent value="general" className="mt-0">
               <div className="running-border">
                 <div className="bg-card p-4 rounded-md">
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Enhanced Prompt</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    {t("prompt.enhancedDescription") || "Enhanced Description for Humans"}
+                  </label>
                   <Textarea
                     value={generalPrompt}
                     onChange={(e) => setGeneralPrompt(e.target.value)}
-                    className="min-h-[200px] bg-card/50 border-border/50 text-foreground resize-none transition-all font-mono"
+                    className="min-h-[200px] bg-card/50 border-border/50 text-foreground resize-none transition-all"
                     showCopy={true}
                     showClear={true}
                   />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {t("prompt.humanPromptDesc") || "Modern language prompt optimized for readability"}
+                  </p>
                 </div>
               </div>
             </TabsContent>
 
-            {/* Advanced JSON Tab */}
+            {/* AI API JSON Prompt Tab */}
             <TabsContent value="json" className="mt-0">
               <div className="running-border">
                 <div className="bg-card p-4 rounded-md">
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">JSON Configuration</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    {t("prompt.apiPrompt") || "Complete AI API Prompt Structure"}
+                  </label>
                   <Textarea
                     value={JSON.stringify(jsonPrompt, null, 2)}
                     onChange={(e) => {
@@ -505,12 +519,12 @@ export default function ImageToPrompt() {
                         // Invalid JSON, don't update
                       }
                     }}
-                    className="min-h-[300px] bg-card/50 border-border/50 text-foreground resize-none transition-all font-mono text-sm"
+                    className="min-h-[400px] bg-card/50 border-border/50 text-foreground resize-none transition-all font-mono text-sm"
                     showCopy={true}
                     showClear={true}
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    This JSON can be used with AI image generation APIs
+                    {t("prompt.jsonPromptDesc") || "Complete JSON structure ready for AI image generation APIs (Flux, DALL-E, Midjourney, etc.)"}
                   </p>
                 </div>
               </div>

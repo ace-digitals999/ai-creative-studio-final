@@ -30,7 +30,7 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, type = "generate" } = await req.json();
+    const { prompt, type = "generate", language } = await req.json();
     
     // Input validation
     if (!prompt) {
@@ -112,10 +112,17 @@ Follow these guidelines:
 - Include technical details that enhance quality
 - Create a prompt that would recreate the essence of the image
 - Keep it detailed but focused (3-4 sentences max)
+- IMPORTANT: If the input is in Farsi (Persian/Arabic script), translate it to English first, then enhance it
+- Always respond in English regardless of input language
 
 Example:
 Input: "cyberpunk city"
 Output: "A sprawling neon-lit cyberpunk metropolis at night, with towering skyscrapers adorned with holographic advertisements in vibrant pink, cyan, and purple. Rain-slicked streets reflect the glowing signs while flying vehicles zip between buildings, creating light trails. Shot in cinematic widescreen with a moody, atmospheric style reminiscent of Blade Runner, featuring dramatic lighting contrasts and a misty, futuristic ambiance."`;
+    }
+    
+    // Add translation instruction if Farsi language is detected
+    if (language === "fa") {
+      systemPrompt += "\n\nNOTE: The user input may be in Farsi (Persian). Please translate it to English first, then create the enhanced prompt in English.";
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
