@@ -85,9 +85,9 @@ export default function MiniatureFigurine() {
   const [selectedBackground, setSelectedBackground] = useStateWithLocalStorage("miniature.background", "museum");
   const [selectedStyle, setSelectedStyle] = useStateWithLocalStorage("miniature.style", "hyper-realistic");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useStateWithLocalStorage<string | null>("miniature.generatedImage", null);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [uploadedFigurine, setUploadedFigurine] = useStateWithLocalStorage<string | null>("miniature.uploadedImage", null);
+  const [uploadedFigurine, setUploadedFigurine] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
