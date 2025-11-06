@@ -256,20 +256,30 @@ export default function ImageToPrompt() {
         setGeneralPrompt(general.prompt);
       }
 
-      // Set complete JSON prompt structure for AI APIs
+      // Set complete detailed JSON prompt structure for AI APIs
       setJsonPrompt({
         model: "flux-pro",
         prompt: typeof general === "string" ? general : general?.prompt || "",
-        negative_prompt: negativePrompt || "blurry, low quality, distorted, ugly, bad anatomy, watermark",
-        width: 1024,
-        height: 1024,
-        num_inference_steps: 50,
-        guidance_scale: 7.5,
-        num_outputs: 1,
-        scheduler: "K_EULER",
-        seed: null,
+        negative_prompt: negativePrompt || "blurry, low quality, distorted, ugly, bad anatomy, watermark, text, signature, oversaturated, duplicate, cropped, deformed",
+        parameters: {
+          width: 1024,
+          height: 1024,
+          num_inference_steps: 50,
+          guidance_scale: 7.5,
+          num_outputs: 1,
+          scheduler: "K_EULER",
+          seed: null,
+          sampler: "DPM++ 2M Karras",
+          cfg_scale: 7.5,
+          clip_skip: 2
+        },
         style: style !== "none" ? style : undefined,
-        mood: mood !== "none" ? mood : undefined
+        mood: mood !== "none" ? mood : undefined,
+        metadata: {
+          created_at: new Date().toISOString(),
+          version: "1.0",
+          api_compatible: ["flux", "stable-diffusion", "midjourney", "dall-e"]
+        }
       });
 
       setActiveResultTab("general");
@@ -475,19 +485,19 @@ export default function ImageToPrompt() {
           <Tabs value={activeResultTab} onValueChange={(v) => setActiveResultTab(v as "general" | "json")}>
             <TabsList className="grid w-full grid-cols-2 bg-card/50 neon-glow mb-6">
               <TabsTrigger value="general" className="data-[state=active]:neon-glow-strong transition-all">
-                {t("prompt.humanPrompt") || "Human Prompt"}
+                Prompt
               </TabsTrigger>
               <TabsTrigger value="json" className="data-[state=active]:neon-glow-strong transition-all">
-                {t("prompt.aiPrompt") || "AI API Prompt"}
+                .Json prompt
               </TabsTrigger>
             </TabsList>
 
-            {/* Human-Readable Prompt Tab */}
+            {/* Prompt Tab */}
             <TabsContent value="general" className="mt-0">
               <div className="running-border">
                 <div className="bg-card p-4 rounded-md">
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    {t("prompt.enhancedDescription") || "Enhanced Description for Humans"}
+                    Enhanced Text Prompt
                   </label>
                   <Textarea
                     value={generalPrompt}
@@ -497,18 +507,18 @@ export default function ImageToPrompt() {
                     showClear={true}
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    {t("prompt.humanPromptDesc") || "Modern language prompt optimized for readability"}
+                    Natural language prompt optimized for image generation
                   </p>
                 </div>
               </div>
             </TabsContent>
 
-            {/* AI API JSON Prompt Tab */}
+            {/* .Json prompt Tab */}
             <TabsContent value="json" className="mt-0">
               <div className="running-border">
                 <div className="bg-card p-4 rounded-md">
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    {t("prompt.apiPrompt") || "Complete AI API Prompt Structure"}
+                    Detailed JSON Configuration
                   </label>
                   <Textarea
                     value={JSON.stringify(jsonPrompt, null, 2)}
@@ -524,7 +534,7 @@ export default function ImageToPrompt() {
                     showClear={true}
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    {t("prompt.jsonPromptDesc") || "Complete JSON structure ready for AI image generation APIs (Flux, DALL-E, Midjourney, etc.)"}
+                    Comprehensive JSON structure with detailed parameters for AI image generation APIs
                   </p>
                 </div>
               </div>
