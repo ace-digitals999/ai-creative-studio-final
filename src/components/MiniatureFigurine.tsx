@@ -21,32 +21,32 @@ const BACKGROUND_TEMPLATES = [
   {
     id: "museum",
     name: "Museum Display",
-    description: "professional museum display case, elegant pedestal, soft spotlighting, gallery white walls, museum quality presentation",
+    description: "professional museum display case with collectible toy box at base, elegant pedestal, soft spotlighting, gallery white walls, museum quality presentation, slightly blurred background",
   },
   {
     id: "glass-vitrine",
     name: "Glass Display Case",
-    description: "luxury glass display case, transparent crystal clear vitrine, LED strip lighting, black velvet base, premium presentation box",
+    description: "luxury glass display case with LED strip lighting illuminating the scene, collectible toy box visible at base, black velvet base, premium presentation, background softly blurred with bokeh light effects, crystalline reflections",
   },
   {
     id: "wooden-pedestal",
     name: "Wooden Pedestal",
-    description: "elegant wooden pedestal, rich mahogany finish, soft ambient lighting, dark background, classic display stand",
+    description: "elegant wooden pedestal with collectible toy box at base, rich mahogany finish, soft ambient lighting, slightly blurred dark background creating depth, classic display stand",
   },
   {
-    id: "white-studio",
-    name: "White Studio",
-    description: "clean white infinity background, professional studio lighting, pure white seamless backdrop, minimalist presentation",
+    id: "toystore-shelf",
+    name: "Toy Store Shelf",
+    description: "colorful toy store shelf display with other action figures and collectibles visible in blurred background, figurine in original collectible toy box prominently displayed, retail shelf lighting, authentic toy store atmosphere, product boxes and other toys softly out of focus behind",
   },
   {
     id: "dark-luxury",
     name: "Dark Luxury",
-    description: "dark luxury background, dramatic spotlight, black velvet surface, golden accent lighting, premium sophisticated atmosphere",
+    description: "dark luxury background with premium collectible toy box, dramatic spotlight on figurine, black velvet surface, golden accent lighting creating depth, background elegantly blurred, sophisticated premium atmosphere",
   },
   {
-    id: "nature-outdoor",
-    name: "Natural Setting",
-    description: "outdoor natural environment, moss covered stone, soft natural daylight, forest floor setting, organic natural background",
+    id: "computer-desk",
+    name: "Computer Desk Setup",
+    description: "modern computer desk setup with figurine displayed prominently, collectible toy box visible behind figurine, gaming keyboard and monitor softly blurred in background, RGB lighting accents, authentic collector's desk environment, background slightly out of focus",
   },
 ];
 
@@ -133,7 +133,7 @@ export default function MiniatureFigurine() {
       const styleTemplate = STYLE_OPTIONS.find(s => s.id === selectedStyle);
       
       // Base prompt for 1/7 scale figurine with full body and stand
-      const scaleAndFormat = "1/7 scale collectible figure, complete full body pose from head to toe, standing on display base with stand, museum quality presentation";
+      const scaleAndFormat = "1/7 scale collectible figure with original collectible toy box, complete full body pose from head to toe, standing on display base with stand, museum quality presentation";
       
       let fullPrompt = "";
       
@@ -144,11 +144,11 @@ export default function MiniatureFigurine() {
           : uploadedFigurine;
         
         // If user uploaded a figurine, transform it into a full body 1/7 scale figure
-        fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus, professional product photography. The final result must show a complete full-body figurine.`;
+        fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. Include the collectible toy box in the scene. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus, professional product photography, cinematic depth of field with background slightly blurred. The final result must show a complete full-body figurine with toy box.`;
         
-        const { data, error } = await supabase.functions.invoke("edit-image", {
+        const { data, error } = await supabase.functions.invoke("remix-images", {
           body: {
-            imageBase64: base64Data,
+            images: [base64Data],
             prompt: fullPrompt,
           },
         });
@@ -157,7 +157,7 @@ export default function MiniatureFigurine() {
         setGeneratedImage(data.imageUrl);
       } else {
         // Generate from text description
-        fullPrompt = `A highly detailed ${scaleAndFormat}: ${figurinePrompt}. ${styleTemplate?.description}. Displayed on ${backgroundTemplate?.description}. CRITICAL: The figurine MUST show complete full body from head to feet, including legs and feet, standing on display base. ENTIRE BODY must be visible - no cropping at waist or legs. Ultra high resolution, 8k quality, professional product photography, perfect lighting, sharp focus, extreme detail, museum quality photograph, professional DSLR camera, macro lens, perfect depth of field`;
+        fullPrompt = `A highly detailed ${scaleAndFormat}: ${figurinePrompt}. ${styleTemplate?.description}. Displayed on ${backgroundTemplate?.description}. CRITICAL: The figurine MUST show complete full body from head to feet, including legs and feet, standing on display base with collectible toy box visible in scene. ENTIRE BODY must be visible - no cropping at waist or legs. Ultra high resolution, 8k quality, professional product photography, perfect lighting, sharp focus, extreme detail, museum quality photograph, professional DSLR camera, macro lens, cinematic depth of field with background elements slightly blurred for depth`;
         
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: {
