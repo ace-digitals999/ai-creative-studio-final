@@ -80,37 +80,43 @@ serve(async (req) => {
       );
     }
 
+    console.log("Sending edit request with prompt:", prompt.substring(0, 100) + "...");
+    console.log("Image data length:", imageBase64.length);
+
+    const requestBody = {
+      model: "google/gemini-2.5-flash-image-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: prompt
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/png;base64,${imageBase64}`
+              }
+            }
+          ]
+        }
+      ],
+      modalities: ["image", "text"]
+    };
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/png;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
-        ],
-        modalities: ["image", "text"]
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      console.error("AI gateway error:", response.status, await response.text());
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: "Unable to edit image" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -118,15 +124,26 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log("Response structure:", JSON.stringify({
+      hasChoices: !!data.choices,
+      choicesLength: data.choices?.length,
+      hasMessage: !!data.choices?.[0]?.message,
+      hasImages: !!data.choices?.[0]?.message?.images,
+      imagesLength: data.choices?.[0]?.message?.images?.length,
+      messageKeys: data.choices?.[0]?.message ? Object.keys(data.choices[0].message) : [],
+    }));
+    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!imageUrl) {
-      console.error("No image data in response");
+      console.error("No image URL in response. Full response:", JSON.stringify(data, null, 2));
       return new Response(
-        JSON.stringify({ error: "Unable to edit image" }),
+        JSON.stringify({ error: "Unable to edit image - no image data in response" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log("Successfully edited image");
 
     return new Response(
       JSON.stringify({ imageUrl }),
