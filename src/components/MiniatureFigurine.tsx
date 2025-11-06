@@ -138,17 +138,12 @@ export default function MiniatureFigurine() {
       let fullPrompt = "";
       
       if (uploadedFigurine) {
-        // Convert data URL to base64
-        const base64Data = uploadedFigurine.includes(',') 
-          ? uploadedFigurine.split(',')[1] 
-          : uploadedFigurine;
-        
         // If user uploaded a figurine, transform it into a full body 1/7 scale figure
         fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. Include the collectible toy box in the scene. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus, professional product photography, cinematic depth of field with background slightly blurred. The final result must show a complete full-body figurine with toy box.`;
         
         const { data, error } = await supabase.functions.invoke("remix-images", {
           body: {
-            images: [base64Data],
+            images: [uploadedFigurine],
             prompt: fullPrompt,
           },
         });
