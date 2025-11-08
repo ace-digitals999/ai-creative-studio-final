@@ -57,10 +57,24 @@
     --shadow-deep: 0 20px 60px -15px hsl(240 15% 0% / 0.8);
     --shadow-card: 0 10px 40px -10px hsl(240 15% 0% / 0.6), 0 0 20px hsl(190 100% 50% / 0.1);
 
-    /* Animation variables */
-    --animation-speed: 3s;
-    --pulse-speed: 2s;
-  }
+  /* Animation variables */
+  --animation-speed: 3s;
+  --pulse-speed: 2s;
+  
+  /* Hardware acceleration */
+  --transform-gpu: translateZ(0);
+}
+
+/* GPU acceleration for animations */
+.animate-fade-in-up,
+.animate-bounce-slow,
+.animate-pulse-glow,
+.animate-neon-pulse,
+.neon-glow,
+.neon-glow-strong {
+  will-change: transform, opacity, box-shadow;
+  transform: translateZ(0);
+}
 }
 
 @layer base {

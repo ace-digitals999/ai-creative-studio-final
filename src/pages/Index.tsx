@@ -51,14 +51,16 @@ const Index = () => {
         loop
         muted
         playsInline
-        className="fixed inset-0 w-full h-full object-cover"
+        preload="auto"
+        className="fixed inset-0 w-full h-full object-cover will-change-auto"
+        style={{ transform: 'translateZ(0)' }}
       >
         <source src="/background-video-figurine.mp4" type="video/mp4" />
       </video>
       
       {/* No overlay - pure video visibility */}
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl" style={{ contain: 'layout style paint' }}>
         {/* Header */}
         <header className="text-center mb-8 space-y-3 animate-fade-in-up">
           <div className="flex justify-end gap-2 mb-3">
@@ -102,7 +104,7 @@ const Index = () => {
           <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-2 md:grid-cols-5 mb-6 bg-card/10 border border-border/50 neon-glow p-1">
             <TabsTrigger 
               value="prompt" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-[background-color,box-shadow,transform] text-xs py-2"
             >
               <Wand2 className="mr-1 h-3 w-3" />
               <span className="hidden md:inline">{t("tabs.imageVideoToPrompt")}</span>
@@ -110,7 +112,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="generate"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-[background-color,box-shadow,transform] text-xs py-2"
             >
               <Sparkles className="mr-1 h-3 w-3" />
               <span className="hidden md:inline">{t("tab.imageGenerator")}</span>
@@ -118,7 +120,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="edit"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-[background-color,box-shadow,transform] text-xs py-2"
             >
               <Pencil className="mr-1 h-3 w-3" />
               <span className="hidden md:inline">{t("tab.imageEditor")}</span>
@@ -126,7 +128,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="miniature"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-[background-color,box-shadow,transform] text-xs py-2"
             >
               <Package className="mr-1 h-3 w-3" />
               <span className="hidden md:inline">Miniature</span>
@@ -134,7 +136,7 @@ const Index = () => {
             </TabsTrigger>
             <TabsTrigger 
               value="chat"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-all text-xs py-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-primary-foreground data-[state=active]:neon-glow-strong transition-[background-color,box-shadow,transform] text-xs py-2"
             >
               <MessageSquare className="mr-1 h-3 w-3" />
               <span className="hidden md:inline">AI Chat</span>
