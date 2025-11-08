@@ -53,7 +53,7 @@ const Index = () => {
         playsInline
         className="fixed inset-0 w-full h-full object-cover"
       >
-        <source src="/background-video.mp4" type="video/mp4" />
+        <source src="/background-video-figurine.mp4" type="video/mp4" />
       </video>
       
       {/* No overlay - pure video visibility */}
