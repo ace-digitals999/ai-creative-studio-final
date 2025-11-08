@@ -13,8 +13,8 @@ import { useStateWithLocalStorage } from "@/hooks/useStateWithLocalStorage";
 
 const miniatureSchema = z.object({
   prompt: z.string()
-    .min(1, "Description is required")
-    .max(2000, "Description must be less than 2000 characters"),
+    .max(2000, "Description must be less than 2000 characters")
+    .optional(),
 });
 
 const BACKGROUND_TEMPLATES = [
@@ -117,6 +117,12 @@ export default function MiniatureFigurine() {
   };
 
   const handleGenerate = async () => {
+    // Check if user has either image or prompt
+    if (!uploadedFigurine && !figurinePrompt.trim()) {
+      toast.error("Please provide either an image or a description");
+      return;
+    }
+
     const validation = miniatureSchema.safeParse({
       prompt: figurinePrompt,
     });
@@ -138,9 +144,16 @@ export default function MiniatureFigurine() {
       let fullPrompt = "";
       
       if (uploadedFigurine) {
-        // If user uploaded a figurine, transform it into a full body 1/7 scale figure
-        fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. Include the collectible toy box in the scene. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus everywhere, professional product photography, everything in crisp sharp focus. The final result must show a complete full-body figurine with toy box.`;
+        // If user uploaded a figurine (with or without prompt)
+        if (figurinePrompt.trim()) {
+          // Image + Prompt: Transform the image according to prompt
+          fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat} based on this description: ${figurinePrompt}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. Include the collectible toy box in the scene. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus everywhere, professional product photography, everything in crisp sharp focus. The final result must show a complete full-body figurine with toy box.`;
+        } else {
+          // Image Only: Transform the image to figurine without additional description
+          fullPrompt = `CRITICAL: Transform this into a ${scaleAndFormat}. IMPORTANT: Even if only the upper body or half body is shown, you MUST create and add the complete lower body including legs, feet, and base. Show the ENTIRE FULL BODY from head to feet. The figure MUST be complete with all body parts visible - torso, arms, legs, and feet standing on a display base. Include the collectible toy box in the scene. ${styleTemplate?.description}. Place on ${backgroundTemplate?.description}. Ultra high resolution, 8k quality, perfect lighting, sharp focus everywhere, professional product photography, everything in crisp sharp focus. The final result must show a complete full-body figurine with toy box.`;
+        }
         
+        console.log("Calling remix-images with prompt:", fullPrompt);
         const { data, error } = await supabase.functions.invoke("remix-images", {
           body: {
             images: [uploadedFigurine],
@@ -150,7 +163,7 @@ export default function MiniatureFigurine() {
 
         if (error) {
           console.error("Remix error details:", error);
-          throw error;
+          throw new Error(error.message || "Failed to remix image");
         }
         
         if (!data?.imageUrl) {
@@ -160,9 +173,10 @@ export default function MiniatureFigurine() {
         
         setGeneratedImage(data.imageUrl);
       } else {
-        // Generate from text description
+        // Prompt Only: Generate from text description
         fullPrompt = `A highly detailed ${scaleAndFormat}: ${figurinePrompt}. ${styleTemplate?.description}. Displayed on ${backgroundTemplate?.description}. CRITICAL: The figurine MUST show complete full body from head to feet, including legs and feet, standing on display base with collectible toy box visible in scene. ENTIRE BODY must be visible - no cropping at waist or legs. Ultra high resolution, 8k quality, professional product photography, perfect lighting, sharp focus everywhere, extreme detail, museum quality photograph, professional DSLR camera, macro lens, everything in crisp focus`;
         
+        console.log("Calling generate-image with prompt:", fullPrompt);
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: {
             prompt: fullPrompt,
@@ -174,7 +188,7 @@ export default function MiniatureFigurine() {
 
         if (error) {
           console.error("Generate error details:", error);
-          throw error;
+          throw new Error(error.message || "Failed to generate image");
         }
         
         if (!data?.imageUrl) {
@@ -279,10 +293,10 @@ export default function MiniatureFigurine() {
         <div className="running-border">
           <div className="bg-card p-4 rounded-md">
             <Label className="text-sm font-medium mb-2 block">
-              Describe Your Miniature Figurine
+              Describe Your Miniature Figurine (Optional)
             </Label>
             <Textarea
-              placeholder="Example: A detailed fantasy knight with silver armor and blue cape, heroic pose, intricate details..."
+              placeholder="Example: A detailed fantasy knight with silver armor and blue cape, heroic pose, intricate details... (Leave blank if you uploaded an image)"
               value={figurinePrompt}
               onChange={(e) => setFigurinePrompt(e.target.value)}
               className="min-h-[100px] bg-card/50 border-border/50 focus:border-primary resize-none transition-all"
@@ -291,7 +305,7 @@ export default function MiniatureFigurine() {
               showClear={true}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {figurinePrompt.length}/2000
+              {figurinePrompt.length}/2000 • Works with image, text, or both
             </p>
           </div>
         </div>
@@ -342,7 +356,7 @@ export default function MiniatureFigurine() {
         {/* Generate Button */}
         <Button
           onClick={handleGenerate}
-          disabled={isGenerating || !figurinePrompt.trim()}
+          disabled={isGenerating || (!uploadedFigurine && !figurinePrompt.trim())}
           className="w-full bg-gradient-to-r from-primary via-secondary to-accent hover:opacity-90 text-primary-foreground font-semibold py-6 neon-glow-strong animate-pulse-glow"
         >
           {isGenerating ? (
